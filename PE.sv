@@ -4,10 +4,11 @@ module PE #(
     input clk, rstn, en,
     input [DWIDTH-1:0] west_in, north_in,
     output [DWIDTH-1:0] south_out, east_out,
-    output [DWIDTH-1:0] result_out
+    output [2*DWIDTH-1:0] result_out
 );
 
-    logic [DWIDTH-1:0] south_out_temp, east_out_temp, result, mult;
+    logic [DWIDTH-1:0] south_out_temp, east_out_temp;
+    logic [2*DWIDTH-1:0] result, mult;
 
     assign south_out = south_out_temp;
     assign east_out = east_out_temp;

@@ -7,7 +7,7 @@ module systolic_array #(
     input logic [DWIDTH-1:0] west [N-1:0],
 
     // TODO: Add output buffer
-    output logic [DWIDTH-1:0] results [N*N-1:0]
+    output logic [2*DWIDTH-1:0] results [N*N-1:0]
     // TODO: Implement done signal
     // output done
 ); 
@@ -49,9 +49,9 @@ module systolic_array #(
             // counter >= row+(i%N) -> inputs valid
             assign ens[i] = (counter >= row+(i%N)) && (counter < N+1+(i%N)+row);
 
-            PE PE_inst #(
+            PE #(
                 .DWIDTH(DWIDTH)
-            )(
+            )PE_inst(
                 .clk(clk),
                 .rstn(rstn),
                 .en(ens[i]),
