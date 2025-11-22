@@ -17,28 +17,26 @@ module systolic_array #(
 
     logic [DWIDTH-1:0] north_in [N*N-1:0];
     logic [DWIDTH-1:0] west_in [N*N-1:0];
-    logic [DWIDTH-1:0] south_out [N*N-1:0]
+    logic [DWIDTH-1:0] south_out [N*N-1:0];
     logic [DWIDTH-1:0] east_out [N*N-1:0];
 
     logic [31:0] counter;
 
-    genvar i, row;
+    genvar i;
 
     //col -> i%N
+    //row -> i/N
 
     generate 
-        row = 0;
         for (i=0;i<N*N;i++) begin:gen_loop    
-            if(i%N == 0 && i != 0) row++;
-
-            if (row == 0) begin //North inputs
+            if (i<N) begin //North inputs
                 assign north_in[i] = north[i];
             end 
             else begin //Inner connections
                 assign north_in[i] = south_out[i-N];
             end
 
-            if (i%N == 0) begin //West inputs
+            if (i<N) begin //West inputs
                 assign west_in[i] = west[i];
             end
             else begin 
@@ -47,7 +45,7 @@ module systolic_array #(
 
             // counter < N+1+(i%N)+row -> result produced 
             // counter >= row+(i%N) -> inputs valid
-            assign ens[i] = (counter >= row+(i%N)) && (counter < N+1+(i%N)+row);
+            assign ens[i] = (counter >= (i/N)+(i%N)) && (counter < N+1+(i%N)+(i/N));
 
             PE #(
                 .DWIDTH(DWIDTH)
@@ -55,7 +53,7 @@ module systolic_array #(
                 .clk(clk),
                 .rstn(rstn),
                 .en(ens[i]),
-                .west_in(south_in[i]),
+                .west_in(west_in[i]),
                 .north_in(north_in[i]),
                 .south_out(south_out[i]),
                 .east_out(east_out[i]),
