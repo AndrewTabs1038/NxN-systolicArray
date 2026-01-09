@@ -16,7 +16,7 @@ module PE #(
 
     assign mult = west_in * north_in;
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if(~rstn) begin 
             result <= 0;
             south_out_temp <= 0;

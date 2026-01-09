@@ -1,15 +1,15 @@
 `timescale 1ps/1ps
 
-//Currently just does a simple test
+// Simple test showcase basic functionality
 module systolic_array_tb;
 
     localparam DWIDTH = 32;
     localparam N = 3;
 
     logic clk, rstn;
-    logic [DWIDTH-1:0] north [N-1:0];
-    logic [DWIDTH-1:0] west [N-1:0];
-    logic [2*DWIDTH-1:0] results [N*N-1:0];
+    logic [DWIDTH-1:0] north [N];
+    logic [DWIDTH-1:0] west [N];
+    logic [2*DWIDTH-1:0] results [N*N];
 
     int counter;
 
@@ -44,26 +44,65 @@ module systolic_array_tb;
             318 342 366
     */
 
-    int curr = 1; 
+    logic [DWIDTH-1:0] A [9];
+    logic [DWIDTH-1:0] B [9];
+    logic [DWIDTH-1:0] C [9];
 
-    task inputSwitch();
-        int i;
-        for (i=0;i<N;i++) begin
-            west[i] = curr + i;
-            north[i] = curr + 9 + 3*i; 
-        end
-        curr = curr + 3;
-    endtask
+    logic [DWIDTH*2-1:0] expectedResult[9];
+
+    logic [DWIDTH-1:0] north_buff0 [5];
+    logic [DWIDTH-1:0] west_buff0 [5];
+
+    logic [DWIDTH-1:0] north_buff1 [5];
+    logic [DWIDTH-1:0] west_buff1 [5];
+
+    logic [DWIDTH-1:0] north_buff2 [5];
+    logic [DWIDTH-1:0] west_buff2 [5];
+
+    int i;
+
+    assign north[0] = north_buff0[i];
+    assign north[1] = north_buff1[i];
+    assign north[2] = north_buff2[i];
+
+    assign west[0] = west_buff0[i];
+    assign west[1] = west_buff1[i];
+    assign west[2] = west_buff2[i];
 
     initial begin
-        clk = 0; rstn = 0;
-        #1;
-        clk = 1;
+        clk = 0; rstn = 0; i = 0;
+
+        //*_buff variables to simulate buffers
+        north_buff0 = {10,13,16,'x,'x};
+        west_buff0 = {1,2,3, 'x, 'x};
+
+        north_buff1 = {'x,11,14,17,'x};
+        west_buff1 = {'x,4,5,6,'x};
+
+        north_buff2 = {'x,'x,12,15,18};
+        west_buff2 = {'x,'x,7,8,9};
+
+        expectedResult = {
+            84,  90,  96,
+            201, 216, 231,
+            318, 342, 366
+        };
+
+        #1; clk = 1;
+        #1; clk = ~clk;
+        #1; clk = ~clk;
         #1; rstn = 1;
-        inputSwitch();
-        repeat (20) begin 
-            #1; clk = ~clk;
-            #1; if (clk == 1) inputSwitch(); 
+        clk = 0; i = 0;      
+        repeat(20) begin // Should be able to go past min number of clk cycles w/o error
+            if(clk == 1) i++;
+            #1;
+            clk = ~clk;
+            #1;
         end
+
+        for(i=0;i<N*N;i++) begin //repurpose i for checking for assertions
+            assert (results[i] == expectedResult[i]) 
+            else $error ("ERROR, Incorrect Value: expected: %0d actual: %0d",expectedResult[i], results[i]);
+        end   
     end
 endmodule
