@@ -103,6 +103,7 @@ module systolic_array_tb;
         for(i=0;i<N*N;i++) begin //repurpose i for checking for assertions
             assert (results[i] == expectedResult[i]) 
             else $error ("ERROR, Incorrect Value: expected: %0d actual: %0d",expectedResult[i], results[i]);
-        end   
+        end
+        $display("TEST COMPLETED");   
     end
 endmodule
