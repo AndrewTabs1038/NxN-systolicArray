@@ -7,7 +7,7 @@ module systolic_array_32tb;
 
     localparam PRINT_MATRICES = 0;
 
-    logic clk, rstn;
+    logic clk, rstn, done;
     logic [DWIDTH-1:0] north [N];
     logic [DWIDTH-1:0] west [N];
     logic [2*DWIDTH-1:0] results [N*N];
@@ -22,9 +22,11 @@ module systolic_array_32tb;
     ) UUT (
         .clk(clk),
         .rstn(rstn),
+        .valid(1'b1),
         .north(north),
         .west(west),
-        .results(results)
+        .results(results),
+        .done(done)
     );
 
     int i,j,n;
@@ -40,6 +42,15 @@ module systolic_array_32tb;
         end: assign_loop
     endgenerate
 
+    always @(posedge done) begin
+        $display("Checking result at done signal");
+        for(i=0;i<N*N;i++) begin
+            assert (results[i] == expected_results[i]) 
+            else $error ("ERROR, Incorrect Value: expected: %0d actual: %0d",expected_results[i], results[i]);
+        end
+        $display("CHECK DONE");
+    end
+
     initial begin
         $readmemh("A.mem",west_input);
         $readmemh("B.mem",north_input);
@@ -50,6 +61,7 @@ module systolic_array_32tb;
             for(j=0;j<N+N-1;j++) begin
                 if(j<i || j>(i+N-1)) begin
                     west_buff[i][j] = 'x; //Values shouldn't be used
+                    north_buff[i][j] = 'x; //Values shouldn't be used
                 end
                 else begin 
                     west_buff[i][j] = west_input[n];

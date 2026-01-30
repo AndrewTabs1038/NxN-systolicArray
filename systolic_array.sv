@@ -2,16 +2,14 @@ module systolic_array #(
     parameter DWIDTH = 32,
     parameter N = 32
 ) (
-    input clk, rstn,
+    input clk, rstn, valid, // Valid signal indicates all input buffer values are valid
     input logic [DWIDTH-1:0] north [N],
     input logic [DWIDTH-1:0] west [N],
 
-    // TODO: Add output buffer
-    output logic [2*DWIDTH-1:0] results [N*N]
-    // TODO: Implement done signal
-    // output done
+    output logic [2*DWIDTH-1:0] results [N*N],
+    output done
 ); 
-    // localparam DONE_CYCLES = ;
+    logic temp_done;
 
     logic [N*N-1:0] ens;
 
@@ -22,11 +20,13 @@ module systolic_array #(
 
     logic [31:0] counter;
 
+    // assign temp_done = (counter == 2*N+2);
+    assign temp_done = (counter == 3*N-2);
+    assign done = temp_done;
     genvar i;
 
     //col -> i%N
     //row -> i/N
-
     generate 
         for (i=0;i<N*N;i++) begin:gen_loop    
             if (i<N) begin //North inputs
@@ -45,7 +45,7 @@ module systolic_array #(
 
             // counter < N+col+row -> result are produced 
             // counter >= row+col -> inputs valid
-            assign ens[i] = (counter >= (i/N)+(i%N)) && (counter < N+(i%N)+(i/N));
+            assign ens[i] = (counter >= (i/N)+(i%N)) & (counter < N+(i%N)+(i/N)) & valid;
 
             PE #(
                 .DWIDTH(DWIDTH)
@@ -66,10 +66,8 @@ module systolic_array #(
         if(~rstn) begin
             counter <= 0;
         end
-        else begin
+        else if (~temp_done & valid) begin
             counter <= counter + 1;
         end
     end
-    
-    
 endmodule

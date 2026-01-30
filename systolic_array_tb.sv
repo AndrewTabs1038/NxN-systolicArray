@@ -6,7 +6,7 @@ module systolic_array_tb;
     localparam DWIDTH = 32;
     localparam N = 3;
 
-    logic clk, rstn;
+    logic clk, rstn, done;
     logic [DWIDTH-1:0] north [N];
     logic [DWIDTH-1:0] west [N];
     logic [2*DWIDTH-1:0] results [N*N];
@@ -19,9 +19,11 @@ module systolic_array_tb;
     ) UUT (
         .clk(clk),
         .rstn(rstn),
+        .valid(1'b1),
         .north(north),
         .west(west),
-        .results(results)
+        .results(results),
+        .done(done)
     );
 
     /*
@@ -69,6 +71,20 @@ module systolic_array_tb;
     assign west[1] = west_buff1[i];
     assign west[2] = west_buff2[i];
 
+    assign expectedResult = {
+            84,  90,  96,
+            201, 216, 231,
+            318, 342, 366
+        };
+
+    always @(posedge done) begin
+        $display("Checking result at done signal");
+        for(i=0;i<N*N;i++) begin //repurpose i for checking for assertions
+            assert (results[i] === expectedResult[i]) 
+            else $error ("ERROR, Incorrect Value: expected: %0d actual: %0d",expectedResult[i], results[i]);
+        end
+    end
+
     initial begin
         clk = 0; rstn = 0; i = 0;
 
@@ -81,12 +97,6 @@ module systolic_array_tb;
 
         north_buff2 = {'x,'x,12,15,18};
         west_buff2 = {'x,'x,7,8,9};
-
-        expectedResult = {
-            84,  90,  96,
-            201, 216, 231,
-            318, 342, 366
-        };
 
         #1; clk = 1;
         #1; clk = ~clk;
@@ -101,7 +111,7 @@ module systolic_array_tb;
         end
 
         for(i=0;i<N*N;i++) begin //repurpose i for checking for assertions
-            assert (results[i] == expectedResult[i]) 
+            assert (results[i] === expectedResult[i]) 
             else $error ("ERROR, Incorrect Value: expected: %0d actual: %0d",expectedResult[i], results[i]);
         end
         $display("TEST COMPLETED");   
