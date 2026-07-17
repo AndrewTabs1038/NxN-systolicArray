@@ -40,19 +40,19 @@ module input_buffer #(
             valid_out <= 1'b1;
             counter <= counter + 1;
             for(i=0;i<N;i++) begin
-                if(counter == 0) begin
-                    Aout[i] <= A_buff[i+N];
-                    Bout[i] <= B_buff[i+1]; 
-                end
-                else if(counter > i) begin
-                    Aout[i] <= A_buff[i+counter];
-                    Bout[i] <= B_buff[i+1];                    
+                // if(counter == 0) begin
+                //     Aout[i] <= A_buff[i+1];
+                //     Bout[i] <= B_buff[i+N]; 
+                // end
+                if(counter >= i) begin
+                    Aout[i] <= A_buff[counter+i];
+                    Bout[i] <= B_buff[counter+i*N];                    
                 end            
             end
-            if(counter == N*(N-1)) begin
-                buffer_filled <= 1'b0;
-                counter <= 0;
-            end
+            // if(counter == N*(N-1)) begin
+            //     buffer_filled <= 1'b0;
+            //     counter <= 0;
+            // end
         end
     end
 endmodule
